@@ -1,12 +1,11 @@
 from typing import *
 
-def setField(arr: List[int], field, player: chr):
+def setField(arr:List[List[str]], field:tuple, player:str) -> List[List[str]]:
     j,i = field
     arr[i][j] = player
     return arr
 
-
-def checkWin(arr: List[int], player: chr):
+def checkWin(arr:List[List[str]], player:str) -> bool:
     n = len(arr)
     for i in range(n):
         #row check
@@ -41,17 +40,15 @@ def checkWin(arr: List[int], player: chr):
     
     return False
 
-
-def printArr(arr: List[int]):
+def printArr(arr:List[List[str]]) -> None:
     for a in arr:
-        print(a)
+        print(' '.join(a))
 
-def main():
+def main() -> None:
     print("Hello")
     arr = [['.']*3 for _ in range(3)]
     moves = 1
     filled = set()
-    nums = [1,2,3]
     h = {'1': (0,0), '2': (1,0), '3': (2,0), '4': (0,1), '5': (1,1), '6': (2,1), '7': (0,2), '8': (1,2), '9': (2,2)}
     print("Type which player starts: X or O: ", end='')
     player = input()
