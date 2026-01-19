@@ -10,6 +10,13 @@ class Graph:
     def sort(self):
         self.d = dict(sorted(self.d.items()))
 
+    def removeEdge(self,u,v) -> None:
+        if v in self.d[u] and u in self.d[v]:
+            self.d[u].remove(v)
+            self.d[v].remove(u)
+        else:
+            raise Exception("Nodes are not connected")
+
     def adjacencyList(self):
         adj = [[0]*self.size for _ in range(self.size)]
         for u in self.d:
@@ -41,6 +48,67 @@ class Graph:
         return g
 
 class undirectedGraph(Graph):
+
+    def hasEulercircuit(self) -> bool:
+        oddDegree = 0
+        for v in self.d.values():
+            if len(v) % 2 != 0:
+                oddDegree += 1
+        if oddDegree == 0 or oddDegree == 2:
+            return True
+        else:
+            return False
+
+    def dfsCount(self,v,visited):
+        visited.add(v)
+        for ngh in self.d[v]:
+            if ngh not in visited:
+                self.dfsCount(ngh,visited)
+
+    def isValidNextEdge(self,u,v) -> bool:
+        if len(self.d[u]) == 1:
+            return True
+        
+        if v not in self.d[u]:
+            return False
+
+        self.d[u].remove(v)
+        self.d[v].remove(u)
+
+        visited = set()
+        if u in self.d:
+            self.dfsCount(u, visited)
+        
+        self.d[u].append(v)
+        self.d[v].append(u)
+        
+        return len(visited) > 0 or u not in self.d
+
+    def getEuler(self,u):
+        edges = []
+        if u not in self.d:
+            return edges
+
+        for ngh in list(self.d[u]):
+            if self.isValidNextEdge(u,ngh):
+                edges.append([u,ngh])
+                self.removeEdge(u,ngh)
+                edges.extend(self.getEuler(ngh))
+        return edges
+
+    #find one eulercircuit
+    def fleuryAlgorithm(self):
+        start = None
+        for k,v in self.d.items():
+            if len(v) % 2 != 0:
+                start = k
+                break
+        
+        if start == None:
+            start = next(iter(self.d))
+        
+        edges = self.getEuler(start)
+        return edges
 
     def dfsRec(self,node:int,res:List[int],visited=None):
         if visited is None:
@@ -152,7 +220,10 @@ class directedWeightedGraph(directedGraph):
 def main():
     graph:undirectedUnweightedGraph = Graph.exampleUUG()
     graph.printGraph()
-    print(graph.bfs(0))
+
+    a = graph.fleuryAlgorithm()
+    print(a)
+
     #print(graph.connected())
     #a = graph.dijkstraAlgo(0)
     #print(a)
