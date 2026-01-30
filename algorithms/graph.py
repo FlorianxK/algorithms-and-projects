@@ -17,7 +17,7 @@ class Graph:
         else:
             raise Exception("Nodes are not connected")
 
-    def adjacencyList(self):
+    def adjacencyList(self) -> List[int]:
         adj = [[0]*self.size for _ in range(self.size)]
         for u in self.d:
             if isinstance(self.d[u][0], List):
@@ -26,8 +26,9 @@ class Graph:
             else:
                 for v in self.d[u]:
                     adj[u][v] = 1
-        for a in adj:
-            print(a)
+        # for a in adj:
+        #     print(a)
+        return adj
 
     def exampleUUG():
         g = undirectedUnweightedGraph()
@@ -38,13 +39,23 @@ class Graph:
         g.add_edge(2,4)
         return g
 
-    def exampleUWG():
+    def exampleUWG1():
         g = undirectedWeightedGraph()
         g.add_edge(0,1,4)
         g.add_edge(0,2,8)
         g.add_edge(1,4,6)
         g.add_edge(2,3,2)
         g.add_edge(3,4,10)
+        return g
+
+    def exampleUWG2():
+        g = undirectedWeightedGraph()
+        g.add_edge(0,1,4)
+        g.add_edge(0,2,2)
+        g.add_edge(0,3,6)
+        g.add_edge(1,2,5)
+        g.add_edge(1,3,2)
+        g.add_edge(2,3,6)
         return g
 
 class undirectedGraph(Graph):
@@ -163,7 +174,7 @@ class undirectedUnweightedGraph(undirectedGraph):
     def add_edge(self,u,v):
         self.d[u].append(v)
         self.d[v].append(u)
-        self.size += 1
+        self.size = len(self.d)
 
     def printGraph(self):
         if self.d:
@@ -177,7 +188,7 @@ class undirectedWeightedGraph(undirectedGraph):
     def add_edge(self,u,v,weight):
         self.d[u].append([v,weight])
         self.d[v].append([u,weight])
-        self.size += 1
+        self.size = len(self.d)
 
     def printGraph(self):
         if self.d:
@@ -204,25 +215,88 @@ class undirectedWeightedGraph(undirectedGraph):
                     heapq.heappush(pq,[dist[v],v])
         return dist
 
+    def greedyTravelingSalesmanProblem(self,src):
+        visited = set()
+        route = [src]
+        visited.add(src)
+        total_dist = 0
+
+        while True:
+            last = route[-1]
+            nearest = None
+            min_dist = float("inf")
+            for neigh in self.d[last]:
+                if neigh[1] < min_dist and neigh[0] not in visited:
+                    min_dist = neigh[1]
+                    nearest = neigh[0]
+            if nearest != None:
+                route.append(nearest)
+                visited.add(nearest)
+                total_dist += min_dist
+            else:
+                break
+
+        for a,b in self.d[route[-1]]:
+            if a == src:
+                total_dist += b
+                route.append(src)
+                return route,total_dist
+
+    def dpTravelingSalesmanProblem(self,cost):
+        if self.size <= 1:
+            return cost[0][0] if self.size == 1 else 0
+        
+        FULL = 1 << self.size
+        fullMask = FULL-1
+
+        dp = [ [float("inf")]*self.size for _ in range(FULL) ]
+        dp[1][0] = 0
+
+        for mask in range(1,FULL):
+            for i in range(self.size):
+                if not (mask & (1 << i)):
+                    continue
+                if dp[mask][i] == float("inf"):
+                    continue
+                for j in range(self.size):
+                    if mask & (1 << j):
+                        continue
+                    nxt = mask | (1 << j)
+
+                    dp[nxt][j] = min( dp[nxt][j], dp[mask][i]+cost[i][j] )
+
+        res = float("inf")
+        for i in range(self.size):
+            if dp[fullMask][i] != float("inf"):
+                res = min(res, dp[fullMask][i]+cost[i][0] )
+
+        return res
+
 class directedGraph(Graph):
     pass
 
 class directedUnweightedGraph(directedGraph):
     def add_edge(self,u,v):
         self.d[u].append(v)
-        self.size += 1
+        self.size = len(self.d)
 
 class directedWeightedGraph(directedGraph):
     def add_edge(self,u,v,weight):
         self.d[u].append([v,weight])
-        self.size += 1
+        self.size = len(self.d)
     
 def main():
-    graph:undirectedUnweightedGraph = Graph.exampleUUG()
+    graph:undirectedWeightedGraph = Graph.exampleUWG2()
+    # graph:undirectedUnweightedGraph = Graph.exampleUUG()
+    # graph.printGraph()
     graph.printGraph()
-
-    a = graph.fleuryAlgorithm()
-    print(a)
+    route,cost = graph.greedyTravelingSalesmanProblem(0)
+    print(route,cost)
+    adj = graph.adjacencyList()
+    test = graph.dpTravelingSalesmanProblem(adj)
+    print(test)
+    # a = graph.fleuryAlgorithm()
+    # print(a)
 
     #print(graph.connected())
     #a = graph.dijkstraAlgo(0)
