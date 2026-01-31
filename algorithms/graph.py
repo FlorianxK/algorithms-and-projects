@@ -272,6 +272,49 @@ class undirectedWeightedGraph(undirectedGraph):
 
         return res
 
+    def kruskalAlgo(self):
+
+        def find(parent,i):
+            if parent[i] != i:
+                parent[i] = find(parent,parent[i])
+            return parent[i]
+        
+        def union(parent,rank,x,y):
+            if rank[x] < rank[y]:
+                parent[x] = y
+            elif rank[x] > rank[y]:
+                parent[y] = y
+            else:
+                parent[y] = x
+                rank[x] += 1
+
+        h = []
+        for u,l in self.d.items():
+            for v,weight in l:
+                heapq.heappush(h, (weight,u,v) )
+        
+        parent = []
+        rank = []
+        for node in range(self.size):
+            parent.append(node)
+            rank.append(0)
+
+        mst = DefaultDict(list)
+        cost = 0
+        while h:
+            minEdge = heapq.heappop(h)
+            weight,u,v = minEdge
+            x = find(parent,u)
+            y = find(parent,v)
+
+            if x != y:
+                cost += weight
+                mst[u].append([v,weight])
+                mst[v].append([u,weight])
+                union(parent,rank,x,y)
+        
+        return mst,cost
+
 class directedGraph(Graph):
     pass
 
@@ -290,11 +333,8 @@ def main():
     # graph:undirectedUnweightedGraph = Graph.exampleUUG()
     # graph.printGraph()
     graph.printGraph()
-    route,cost = graph.greedyTravelingSalesmanProblem(0)
-    print(route,cost)
-    adj = graph.adjacencyList()
-    test = graph.dpTravelingSalesmanProblem(adj)
-    print(test)
+    mst,cost = graph.kruskalAlgo()
+    print(mst,cost)
     # a = graph.fleuryAlgorithm()
     # print(a)
 
