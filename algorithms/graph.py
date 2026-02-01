@@ -315,6 +315,33 @@ class undirectedWeightedGraph(undirectedGraph):
         
         return mst,cost
 
+    def primAlgo(self,src):
+        h = []
+        for v,weight in self.d[src]:
+            heapq.heappush(h, (weight,src,v) )
+        visited = set()
+        visited.add(src)
+        mst = DefaultDict(list)
+        cost = 0
+        while h:
+            minEdge = heapq.heappop(h)
+            weight,u,v = minEdge
+            new_Node = None
+            if u in visited and v not in visited:
+                new_Node = v
+            elif u not in visited and v in visited:
+                new_Node = u
+            if new_Node:
+                visited.add(new_Node)
+                cost += weight
+                mst[u].append([v,weight])
+                mst[v].append([u,weight])
+            
+                for v,weight in self.d[new_Node]:
+                    heapq.heappush(h, (weight,new_Node,v) )
+
+        return mst,cost
+    
 class directedGraph(Graph):
     pass
 
@@ -334,6 +361,8 @@ def main():
     # graph.printGraph()
     graph.printGraph()
     mst,cost = graph.kruskalAlgo()
+    print(mst,cost)
+    mst,cost = graph.primAlgo(0)
     print(mst,cost)
     # a = graph.fleuryAlgorithm()
     # print(a)
