@@ -7,13 +7,16 @@ class Encrypt:
         res = ""
         c:str
         for c in text:
-            if c.isupper():
-                res += chr( (ord(c)+steps-65)%26+65 )
+            if c.isalpha():
+                if c.isupper():
+                    res += chr( (ord(c)+steps-65)%26+65 )
+                else:
+                    res += chr( (ord(c)+steps-97)%26+97 )
             else:
-                res += chr( (ord(c)+steps-97)%26+97 )
+                res += c
         return res
 
-    def teaEncrypt(number:int,key:int):
+    def teaEncrypt(number:int,key:int) -> List[int]:
         y = c_uint32(number[0])
         z = c_uint32(number[1])
         sum = c_uint32(0)
@@ -30,6 +33,19 @@ class Encrypt:
         w[0] = y.value
         w[1] = z.value
         return w
+    
+    def atbashEncrypt(text:str) -> str:
+        res = ""
+        c:str
+        for c in text:
+            if c.isalpha():
+                if c.isupper():
+                    res += chr( 155-ord(c) )
+                else:
+                    res += chr( 219-ord(c) )
+            else:
+                res += c
+        return res
 
 class Decrypt:
 
@@ -37,13 +53,16 @@ class Decrypt:
         res = ""
         c:str
         for c in text:
-            if c.isupper():
-                res += chr( (ord(c)-steps-65)%26+65 )
+            if c.isalpha():
+                if c.isupper():
+                    res += chr( (ord(c)-steps-65)%26+65 )
+                else:
+                    res += chr( (ord(c)-steps-97)%26+97 )
             else:
-                res += chr( (ord(c)-steps-97)%26+97 )
+                res += c
         return res
 
-    def teaDecrypt(number:int,key:int):
+    def teaDecrypt(number:int,key:int) -> List[int]:
         y = c_uint32(number[0])
         z = c_uint32(number[1])
         sum = c_uint32(0xc6ef3720)
@@ -61,19 +80,41 @@ class Decrypt:
         w[1] = z.value
         return w
 
+    def atbashDecrypt(text:str) -> str:
+        res = ""
+        c:str
+        for c in text:
+            if c.isalpha():
+                if c.isupper():
+                    res += chr( 155-ord(c) )
+                else:
+                    res += chr( 219-ord(c) )
+            else:
+                res += c
+        return res
+
 def main():
-    text = "ATTACKATONCE"
+    print("Caesar:")
+    text = "ATTACK AT ONCE!"
     e = Encrypt.caesarEncrypt(text,4)
     print(e)
     d = Decrypt.caesarDecrypt(e,4)
     print(d)
 
+    print("Tea:")
     key = [1,2,3,4]
     values = [1385482522,639876499]
     e = Encrypt.teaEncrypt(values,key)
     print(e)
     d = Decrypt.teaDecrypt(e,key)
     print(d)
-    
+
+    print("Atbash:")
+    text = "I wonder if the same thing is happening in my country."
+    e = Encrypt.atbashEncrypt(text)
+    print(e)
+    d = Decrypt.atbashDecrypt(e)
+    print(d)
+
 if __name__ == "__main__":
     main()
